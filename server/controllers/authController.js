@@ -1,7 +1,8 @@
-exports.register = (req, res) => {
-  res.send('User registration coming soon...');
-};
+const User = require('../models/User');
 
-exports.login = (req, res) => {
-  res.send('User login coming soon...');
+exports.getAllUsers = async (_, res, next) => {
+  try {
+    const users = await User.find().select('_id name email');
+    res.json(users);
+  } catch (err) { next(err); }
 };

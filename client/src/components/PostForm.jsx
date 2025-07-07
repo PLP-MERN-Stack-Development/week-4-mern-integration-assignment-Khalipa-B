@@ -6,6 +6,7 @@ import api from '../api/api';
 import { useEffect, useState } from 'react';
 
 // 1️⃣ Yup validation schema
+
 const schema = yup.object({
   title: yup
     .string()
@@ -22,6 +23,8 @@ export default function PostForm() {
     // inside PostForm component
 const [cats, setCats] = useState([]);
 const [authors, setAuthors] = useState([]);
+// extra field ref
+const [file, setFile] = useState(null);
 
 useEffect(() => {
   api.get('/categories').then(r => setCats(r.data));
@@ -46,16 +49,15 @@ useEffect(() => {
   });
 
   // 3️⃣ onSubmit handler
-  const onSubmit = async (data) => {
-    try {
-      await api.post('/posts', data);
-      reset();
-      navigate('/');
-    } catch (err) {
-      console.error(err);
-      alert('Failed to create post');
-    }
-  };
+ const onSubmit = async (data) => {
+  const form = new FormData();
+  Object.entries(data).forEach(([k,v]) => form.append(k, v));
+  if (file) form.append('featuredImage', file);
+
+  await api.post('/posts', form, { headers: { 'Content-Type': 'multipart/form-data' } });
+  reset(); navigate('/');
+};
+
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} style={{ maxWidth: '600px' }}>
@@ -97,8 +99,19 @@ useEffect(() => {
         input, textarea { width: 100%; padding: 0.5rem; }
         button { width: 130px; padding: 0.5rem; }
       `}</style>
+
+      // inside JSX
+<label>Featured Image</label>
+<input
+  type="file"
+  accept="image/*"
+  onChange={e => setFile(e.target.files[0])}
+/>
+
     </form>
   );
 
 
 }
+
+

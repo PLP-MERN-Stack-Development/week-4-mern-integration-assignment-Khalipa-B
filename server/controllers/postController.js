@@ -61,3 +61,12 @@ exports.deletePost = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.createPost = async (req, res, next) => {
+  try {
+    const body = { ...req.body, author: req.user.id };      // author from token
+    if (req.file) body.featuredImage = `/uploads/${req.file.filename}`;
+    const post = await Post.create(body);
+    res.status(201).json(post);
+  } catch (err) { next(err); }
+};
