@@ -1,72 +1,87 @@
-import { useState } from 'react';
-import api from '../api/api';
 import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+import api from '../api/api';
 
-const PostForm = () => {
+// 1️⃣ Yup validation schema
+const schema = yup.object({
+  title: yup
+    .string()
+    .required('Title is required')
+    .max(100, 'Title can’t exceed 100 chars'),
+  content: yup.string().required('Content is required').min(50, 'Content too short'),
+  category: yup.string().required('Category ID is required'),
+  author: yup.string().required('Author ID is required'),
+  excerpt: yup.string().max(200, 'Excerpt can’t exceed 200 chars').optional(),
+}).required();
+
+export default function PostForm() {
   const navigate = useNavigate();
-  const [post, setPost] = useState({
-    title: '',
-    content: '',
-    category: '',
-    author: '', // TEMP: hardcoded author for testing
+
+  // 2️⃣ react‑hook‑form setup
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm({
+    resolver: yupResolver(schema),
+    defaultValues: {
+      title: '',
+      content: '',
+      category: '',
+      author: '',
+      excerpt: '',
+    },
   });
-  const [error, setError] = useState('');
 
-  const handleChange = e => {
-    setPost({ ...post, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = e => {
-    e.preventDefault();
-    if (!post.title || !post.content || !post.category || !post.author) {
-      setError('All fields are required');
-      return;
+  // 3️⃣ onSubmit handler
+  const onSubmit = async (data) => {
+    try {
+      await api.post('/posts', data);
+      reset();
+      navigate('/');
+    } catch (err) {
+      console.error(err);
+      alert('Failed to create post');
     }
-
-    api.post('/posts', post)
-      .then(() => navigate('/'))
-      .catch(() => setError('Failed to create post'));
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit(onSubmit)} style={{ maxWidth: '600px' }}>
       <h2>Create New Post</h2>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
 
-      <input
-        type="text"
-        name="title"
-        placeholder="Post Title"
-        value={post.title}
-        onChange={handleChange}
-      />
-      <br />
-      <textarea
-        name="content"
-        placeholder="Post Content"
-        value={post.content}
-        onChange={handleChange}
-      />
-      <br />
-      <input
-        type="text"
-        name="category"
-        placeholder="Category ID"
-        value={post.category}
-        onChange={handleChange}
-      />
-      <br />
-      <input
-        type="text"
-        name="author"
-        placeholder="Author ID"
-        value={post.author}
-        onChange={handleChange}
-      />
-      <br />
-      <button type="submit">Create Post</button>
+      <label>Title</label>
+      <input {...register('title')} placeholder="Post Title" />
+      {errors.title && <p className="err">{errors.title.message}</p>}
+
+      <label>Content</label>
+      <textarea {...register('content')} placeholder="Post Content" rows={8} />
+      {errors.content && <p className="err">{errors.content.message}</p>}
+
+      <label>Excerpt (optional)</label>
+      <textarea {...register('excerpt')} rows={3} />
+      {errors.excerpt && <p className="err">{errors.excerpt.message}</p>}
+
+      <label>Category ID</label>
+      <input {...register('category')} placeholder="Category Mongo ID" />
+      {errors.category && <p className="err">{errors.category.message}</p>}
+
+      <label>Author ID</label>
+      <input {...register('author')} placeholder="Author Mongo ID" />
+      {errors.author && <p className="err">{errors.author.message}</p>}
+
+      <button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? 'Saving…' : 'Create Post'}
+      </button>
+
+      <style jsx>{`
+        form { display: flex; flex-direction: column; gap: 0.75rem; }
+        .err { color: red; margin: 0; font-size: 0.85rem; }
+        input, textarea { width: 100%; padding: 0.5rem; }
+        button { width: 130px; padding: 0.5rem; }
+      `}</style>
     </form>
   );
-};
-
-export default PostForm;
+}
