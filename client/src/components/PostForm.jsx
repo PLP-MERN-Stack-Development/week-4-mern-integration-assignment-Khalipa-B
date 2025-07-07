@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import api from '../api/api';
+import { useEffect, useState } from 'react';
 
 // 1️⃣ Yup validation schema
 const schema = yup.object({
@@ -18,6 +19,14 @@ const schema = yup.object({
 
 export default function PostForm() {
   const navigate = useNavigate();
+    // inside PostForm component
+const [cats, setCats] = useState([]);
+const [authors, setAuthors] = useState([]);
+
+useEffect(() => {
+  api.get('/categories').then(r => setCats(r.data));
+  api.get('/auth/users').then(r => setAuthors(r.data));
+}, []);
 
   // 2️⃣ react‑hook‑form setup
   const {
@@ -64,13 +73,19 @@ export default function PostForm() {
       <textarea {...register('excerpt')} rows={3} />
       {errors.excerpt && <p className="err">{errors.excerpt.message}</p>}
 
-      <label>Category ID</label>
-      <input {...register('category')} placeholder="Category Mongo ID" />
-      {errors.category && <p className="err">{errors.category.message}</p>}
+      <label>Category</label>
+      <select {...register('category')}>
+  <option value="">-- choose --</option>
+  {cats.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
+</select>
+{errors.category && <p className="err">{errors.category.message}</p>}
 
-      <label>Author ID</label>
-      <input {...register('author')} placeholder="Author Mongo ID" />
-      {errors.author && <p className="err">{errors.author.message}</p>}
+      <label>Author</label>
+<select {...register('author')}>
+  <option value="">-- choose --</option>
+  {authors.map(u => <option key={u._id} value={u._id}>{u.name}</option>)}
+</select>
+{errors.author && <p className="err">{errors.author.message}</p>}
 
       <button type="submit" disabled={isSubmitting}>
         {isSubmitting ? 'Saving…' : 'Create Post'}
@@ -84,4 +99,6 @@ export default function PostForm() {
       `}</style>
     </form>
   );
+
+
 }
