@@ -1,5 +1,4 @@
-// Post.js - Mongoose model for blog posts
-
+// Post.js
 const mongoose = require('mongoose');
 
 const PostSchema = new mongoose.Schema(
@@ -66,35 +65,24 @@ const PostSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Create slug from title before saving
 PostSchema.pre('save', function (next) {
-  if (!this.isModified('title')) {
-    return next();
-  }
-  
-  this.slug = this.title
-    .toLowerCase()
-    .replace(/[^\w ]+/g, '')
-    .replace(/ +/g, '-');
-    
+  if (!this.isModified('title')) return next();
+  this.slug = this.title.toLowerCase().replace(/[^\w ]+/g, '').replace(/ +/g, '-');
   next();
 });
 
-// Virtual for post URL
 PostSchema.virtual('url').get(function () {
   return `/posts/${this.slug}`;
 });
 
-// Method to add a comment
 PostSchema.methods.addComment = function (userId, content) {
   this.comments.push({ user: userId, content });
   return this.save();
 };
 
-// Method to increment view count
 PostSchema.methods.incrementViewCount = function () {
   this.viewCount += 1;
   return this.save();
 };
 
-module.exports = mongoose.model('Post', PostSchema); 
+module.exports = mongoose.model('Post', PostSchema);
