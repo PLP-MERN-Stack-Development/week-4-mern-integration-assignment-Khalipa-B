@@ -1,2 +1,11 @@
-const ViewPost = () => <h1>Single Post View</h1>;
+import PostView from '../components/PostView';
+
+const ViewPost = () => {
+  return (
+    <div className="container">
+      <PostView />
+    </div>
+  );
+};
+
 export default ViewPost;
