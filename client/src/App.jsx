@@ -1,24 +1,20 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Navbar from './components/Layout/Navbar';
-import HomePage from './pages/Home';
-import PostPage from './pages/PostPage';
-import NewPostPage from './pages/NewPostPage';
-import EditPostPage from './pages/EditPostPage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Navbar from './components/Navbar';
+import Home from './pages/Home';
+import CreatePost from './pages/CreatePost';
+import ViewPost from './pages/ViewPost';
 
-const App = () => (
-  <BrowserRouter>
-    <Navbar />
-    <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/posts/:id" element={<PostPage />} />
-      <Route path="/new" element={<NewPostPage />} />
-      <Route path="/edit/:id" element={<EditPostPage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
-    </Routes>
-  </BrowserRouter>
-);
+function App() {
+  return (
+    <Router>
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/posts/new" element={<CreatePost />} />
+        <Route path="/posts/:id" element={<ViewPost />} />
+      </Routes>
+    </Router>
+  );
+}
 
 export default App;
