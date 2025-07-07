@@ -1,39 +1,21 @@
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../api/api';
 
-const PostList = () => {
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    api.get('/posts')
-      .then(res => {
-        setPosts(res.data);
-        setLoading(false);
-      })
-      .catch(err => {
-        setError('Failed to load posts');
-        setLoading(false);
-      });
-  }, []);
-
-  if (loading) return <p>Loading posts...</p>;
-  if (error) return <p style={{ color: 'red' }}>{error}</p>;
+export default function PostList({ posts }) {
+  if (!posts.length) return <p>No posts available.</p>;
 
   return (
-    <div>
-      <h2>Blog Posts</h2>
-      {posts.map(post => (
-        <div key={post._id} style={{ borderBottom: '1px solid #ddd', marginBottom: '1rem' }}>
-          <h3>{post.title}</h3>
-          <p>{post.excerpt || post.content.substring(0, 150)}...</p>
-          <Link to={`/posts/${post._id}`}>Read More</Link>
-        </div>
+    <ul>
+      {posts.map((post) => (
+        <li key={post._id}>
+          <Link to={`/posts/${post._id}`}>
+            <h3>{post.title}</h3>
+          </Link>
+          <p>{post.excerpt || post.content.substring(0, 100) + '...'}</p>
+          <p>
+            By {post.author?.name || 'Unknown'} | Category: {post.category?.name || 'None'}
+          </p>
+        </li>
       ))}
-    </div>
+    </ul>
   );
-};
-
-export default PostList;
+}

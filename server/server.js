@@ -1,17 +1,22 @@
 // server.js - Main server file for the MERN blog application
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
+
+// Load env variables early
+dotenv.config();
+
+const connectDB = require('./config/db');
+const errorHandler = require('./middleware/errorHandler');
+
+// Connect to MongoDB
+connectDB();
 
 // Routes
 const postRoutes = require('./routes/posts');
 const categoryRoutes = require('./routes/categories');
 const authRoutes = require('./routes/auth');
-
-// Load env variables
-dotenv.config();
 
 // App init
 const app = express();
@@ -42,32 +47,16 @@ app.get('/', (req, res) => {
 });
 
 // Error handler
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(err.statusCode || 500).json({
-    success: false,
-    error: err.message || 'Server Error',
-  });
-});
-
-// MongoDB connect
-mongoose
-  .connect(process.env.MONGODB_URI)
-  .then(() => {
-    console.log('Connected to MongoDB');
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
-  })
-  .catch((err) => {
-    console.error('Failed to connect to MongoDB', err);
-    process.exit(1);
-  });
+app.use(errorHandler);
 
 // Handle unhandled promise rejection
 process.on('unhandledRejection', (err) => {
   console.error('Unhandled Promise Rejection:', err);
   process.exit(1);
+});
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
 
 module.exports = app;

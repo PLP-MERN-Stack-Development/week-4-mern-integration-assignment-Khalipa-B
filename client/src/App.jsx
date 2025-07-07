@@ -1,22 +1,20 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
-import CreatePost from './pages/CreatePost';
 import ViewPost from './pages/ViewPost';
-import Login from './pages/Login';               // ← new
+import CreatePost from './pages/CreatePost';
+import Login from './pages/Login';
 
-function App() {
+export default function App() {
   return (
     <BrowserRouter>
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/posts/new" element={<CreatePost />} />
         <Route path="/posts/:id" element={<ViewPost />} />
-        <Route path="/login" element={<Login />} />   {/* new route */}
+        <Route path="/posts/new" element={<CreatePost />} /> {/* Updated route */}
+        <Route path="/login" element={<Login />} />
       </Routes>
     </BrowserRouter>
   );
 }
-
-export default App;

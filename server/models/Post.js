@@ -1,4 +1,3 @@
-// Post.js
 const mongoose = require('mongoose');
 
 const PostSchema = new mongoose.Schema(
@@ -66,8 +65,15 @@ const PostSchema = new mongoose.Schema(
 );
 
 PostSchema.pre('save', function (next) {
-  if (!this.isModified('title')) return next();
-  this.slug = this.title.toLowerCase().replace(/[^\w ]+/g, '').replace(/ +/g, '-');
+  if (!this.isModified('title')) {
+    return next();
+  }
+
+  this.slug = this.title
+    .toLowerCase()
+    .replace(/[^\w ]+/g, '')
+    .replace(/ +/g, '-');
+
   next();
 });
 

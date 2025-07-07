@@ -11,7 +11,11 @@ exports.getAllCategories = async (req, res, next) => {
 
 exports.createCategory = async (req, res, next) => {
   try {
-    const category = await Category.create(req.body);
+    const { name } = req.body;
+    if (!name || typeof name !== 'string' || !name.trim()) {
+      return res.status(400).json({ message: 'Category name is required' });
+    }
+    const category = await Category.create({ name: name.trim() });
     res.status(201).json(category);
   } catch (err) {
     next(err);
