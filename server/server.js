@@ -45,6 +45,9 @@ app.get('/', (req, res) => {
   res.send('MERN Blog API is running');
 });
 
+app.use(require('./middleware/errorHandler'));
+
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
