@@ -2,36 +2,22 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import api from '../api/api';
 import { useEffect, useState } from 'react';
+import api from '../api/api';
 
-// 1️⃣ Yup validation schema
-
+// 🚦 Yup schema (no author field)
 const schema = yup.object({
-  title: yup
-    .string()
-    .required('Title is required')
-    .max(100, 'Title can’t exceed 100 chars'),
-  content: yup.string().required('Content is required').min(50, 'Content too short'),
-  category: yup.string().required('Category ID is required'),
-  author: yup.string().required('Author ID is required'),
-  excerpt: yup.string().max(200, 'Excerpt can’t exceed 200 chars').optional(),
-}).required();
+  title: yup.string().required('Title is required').max(100),
+  content: yup.string().required('Content is required').min(50),
+  category: yup.string().required('Category is required'),
+  excerpt: yup.string().max(200, 'Excerpt too long').optional(),
+});
 
 export default function PostForm() {
   const navigate = useNavigate();
-    // inside PostForm component
-const [cats, setCats] = useState([]);
-const [authors, setAuthors] = useState([]);
-// extra field ref
-const [file, setFile] = useState(null);
+  const [cats, setCats] = useState([]);
+  const [file, setFile] = useState(null);
 
-useEffect(() => {
-  api.get('/categories').then(r => setCats(r.data));
-  api.get('/auth/users').then(r => setAuthors(r.data));
-}, []);
-
-  // 2️⃣ react‑hook‑form setup
   const {
     register,
     handleSubmit,
@@ -43,32 +29,40 @@ useEffect(() => {
       title: '',
       content: '',
       category: '',
-      author: '',
       excerpt: '',
     },
   });
 
-  // 3️⃣ onSubmit handler
- const onSubmit = async (data) => {
-  const form = new FormData();
-  Object.entries(data).forEach(([k,v]) => form.append(k, v));
-  if (file) form.append('featuredImage', file);
+  // fetch categories once
+  useEffect(() => {
+    api.get('/categories').then((r) => setCats(r.data));
+  }, []);
 
-  await api.post('/posts', form, { headers: { 'Content-Type': 'multipart/form-data' } });
-  reset(); navigate('/');
-};
+  const onSubmit = async (data) => {
+    const form = new FormData();
+    Object.entries(data).forEach(([k, v]) => form.append(k, v));
+    if (file) form.append('featuredImage', file);
 
+    try {
+      await api.post('/posts', form, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      reset(); navigate('/');
+    } catch (err) {
+      alert('Failed to create post');
+    }
+  };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} style={{ maxWidth: '600px' }}>
+    <form onSubmit={handleSubmit(onSubmit)} style={{ maxWidth: 600 }}>
       <h2>Create New Post</h2>
 
       <label>Title</label>
-      <input {...register('title')} placeholder="Post Title" />
+      <input {...register('title')} />
       {errors.title && <p className="err">{errors.title.message}</p>}
 
       <label>Content</label>
-      <textarea {...register('content')} placeholder="Post Content" rows={8} />
+      <textarea {...register('content')} rows={8} />
       {errors.content && <p className="err">{errors.content.message}</p>}
 
       <label>Excerpt (optional)</label>
@@ -77,17 +71,21 @@ useEffect(() => {
 
       <label>Category</label>
       <select {...register('category')}>
-  <option value="">-- choose --</option>
-  {cats.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
-</select>
-{errors.category && <p className="err">{errors.category.message}</p>}
+        <option value="">-- choose --</option>
+        {cats.map((c) => (
+          <option key={c._id} value={c._id}>
+            {c.name}
+          </option>
+        ))}
+      </select>
+      {errors.category && <p className="err">{errors.category.message}</p>}
 
-      <label>Author</label>
-<select {...register('author')}>
-  <option value="">-- choose --</option>
-  {authors.map(u => <option key={u._id} value={u._id}>{u.name}</option>)}
-</select>
-{errors.author && <p className="err">{errors.author.message}</p>}
+      <label>Featured Image</label>
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => setFile(e.target.files[0])}
+      />
 
       <button type="submit" disabled={isSubmitting}>
         {isSubmitting ? 'Saving…' : 'Create Post'}
@@ -95,23 +93,9 @@ useEffect(() => {
 
       <style jsx>{`
         form { display: flex; flex-direction: column; gap: 0.75rem; }
-        .err { color: red; margin: 0; font-size: 0.85rem; }
-        input, textarea { width: 100%; padding: 0.5rem; }
-        button { width: 130px; padding: 0.5rem; }
+        .err { color: red; font-size: 0.85rem; margin: 0; }
+        input, textarea, select { width: 100%; padding: 0.5rem; }
       `}</style>
-
-      // inside JSX
-<label>Featured Image</label>
-<input
-  type="file"
-  accept="image/*"
-  onChange={e => setFile(e.target.files[0])}
-/>
-
     </form>
   );
-
-
 }
-
-
